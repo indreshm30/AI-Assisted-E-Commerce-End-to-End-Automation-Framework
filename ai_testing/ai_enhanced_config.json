@@ -1,0 +1,27 @@
+{
+  "mcp_server_url": "http://localhost:3003",
+  "generated_tests_dir": "ai_generated_tests",
+  "adaptive_data_dir": "adaptive_data",
+  "analytics_data_dir": "analytics_data",
+  "test_execution": {
+    "parallel_workers": 4,
+    "timeout": 300,
+    "retry_failed": true,
+    "max_retries": 2
+  },
+  "ai_generation": {
+    "confidence_threshold": 0.6,
+    "max_tests_per_story": 5,
+    "include_predictive": true
+  },
+  "adaptive_learning": {
+    "auto_apply_fixes": true,
+    "learning_window_days": 7,
+    "min_pattern_frequency": 3
+  },
+  "analytics": {
+    "generate_insights": true,
+    "export_reports": true,
+    "real_time_monitoring": false
+  }
+}

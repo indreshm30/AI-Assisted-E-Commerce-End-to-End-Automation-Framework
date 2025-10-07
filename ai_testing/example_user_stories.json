@@ -1,0 +1,14 @@
+{
+  "user_stories": [
+    "As a customer, I want to search for products so that I can find items I need",
+    "As a user, I want to register an account so that I can save my preferences",
+    "As a customer, I want to add products to my cart so that I can purchase multiple items",
+    "As a user, I want to view my cart so that I can see what I'm about to purchase",
+    "As a customer, I want to proceed to checkout so that I can complete my purchase",
+    "As a user, I want to enter payment information so that I can pay for my order",
+    "As a customer, I want to receive order confirmation so that I know my purchase was successful",
+    "As a user, I want to view my order history so that I can track my past purchases",
+    "As a customer, I want to add products to wishlist so that I can save items for later",
+    "As a user, I want to write product reviews so that I can share my experience with others"
+  ]
+}

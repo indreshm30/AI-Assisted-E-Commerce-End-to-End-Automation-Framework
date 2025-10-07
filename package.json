@@ -1,0 +1,76 @@
+{
+  "name": "ai-enhanced-ecommerce-automation",
+  "version": "1.0.0",
+  "description": "Complete AI-Enhanced E-Commerce Automation Framework with Testing, Deployment, and Intelligence",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"npm run dev:mcp\"",
+    "dev:frontend": "cd platform/frontend && npm run dev",
+    "dev:backend": "cd platform/backend && npm run dev",
+    "dev:mcp": "cd platform/mcp_server && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:mcp",
+    "build:frontend": "cd platform/frontend && npm run build",
+    "build:backend": "cd platform/backend && npm run build",
+    "build:mcp": "cd platform/mcp_server && npm run build",
+    "test": "npm run test:ai-enhanced",
+    "test:ai-enhanced": "cd ai_testing && python orchestrator.py --mode auto",
+    "install:all": "npm run install:frontend && npm run install:backend && npm run install:mcp && npm run install:testing",
+    "install:frontend": "cd platform/frontend && npm install",
+    "install:backend": "cd platform/backend && npm install",
+    "install:mcp": "cd platform/mcp_server && npm install",
+    "install:testing": "cd ai_testing && pip install -r requirements.txt",
+    "deploy:production": "cd deployment && chmod +x deploy-production.sh && ./deploy-production.sh",
+    "deploy:docker": "cd deployment && docker-compose -f docker/docker-compose.production.yml up -d",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\" \"npm run start:mcp\"",
+    "start:frontend": "cd platform/frontend && npm start",
+    "start:backend": "cd platform/backend && npm start",
+    "start:mcp": "cd platform/mcp_server && npm start",
+    "lint": "npm run lint:frontend && npm run lint:backend && npm run lint:mcp",
+    "lint:frontend": "cd platform/frontend && npm run lint",
+    "lint:backend": "cd platform/backend && npm run lint",
+    "lint:mcp": "cd platform/mcp_server && npm run lint",
+    "setup": "npm run install:all && npm run setup:env",
+    "setup:env": "node scripts/setup-env.js",
+    "clean": "npm run clean:frontend && npm run clean:backend && npm run clean:mcp",
+    "clean:frontend": "cd platform/frontend && rm -rf node_modules .next",
+    "clean:backend": "cd platform/backend && rm -rf node_modules dist",
+    "clean:mcp": "cd platform/mcp_server && rm -rf node_modules dist"
+  },
+  "keywords": [
+    "ecommerce",
+    "ai",
+    "automation",
+    "testing",
+    "playwright",
+    "nextjs",
+    "nodejs",
+    "mcp",
+    "ai-testing",
+    "docker",
+    "kubernetes"
+  ],
+  "author": "AI-Enhanced E-Commerce Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/indreshm30/AI-Assisted-E-Commerce-End-to-End-Automation-Framework.git"
+  },
+  "bugs": {
+    "url": "https://github.com/indreshm30/AI-Assisted-E-Commerce-End-to-End-Automation-Framework/issues"
+  },
+  "homepage": "https://github.com/indreshm30/AI-Assisted-E-Commerce-End-to-End-Automation-Framework#readme",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "platform/frontend",
+    "platform/backend", 
+    "platform/mcp_server"
+  ]
+}

@@ -1,0 +1,264 @@
+# Backend API ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: ecommerce-production
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  DATABASE_URL: "postgresql://ecommerce_user:password123@postgres-service:5432/ecommerce_production"
+  REDIS_URL: "redis://:redis_password_123@redis-service:6379"
+  CORS_ORIGIN: "http://frontend-service:3002"
+
+---
+# Backend Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secret
+  namespace: ecommerce-production
+type: Opaque
+data:
+  JWT_SECRET: c3VwZXJfc2VjdXJlX2p3dF9zZWNyZXQ= # base64 'super_secure_jwt_secret'
+  STRIPE_SECRET_KEY: c2tfdGVzdF9zdHJpcGVfc2VjcmV0 # base64 'sk_test_stripe_secret'
+
+---
+# Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: ecommerce-production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: ecommerce/backend:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        - secretRef:
+            name: backend-secret
+        ports:
+        - containerPort: 3001
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: ecommerce-production
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 3001
+  type: ClusterIP
+
+---
+# Frontend ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: ecommerce-production
+data:
+  NODE_ENV: "production"
+  NEXT_PUBLIC_API_URL: "http://backend-service:3001"
+
+---
+# Frontend Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: frontend-secret
+  namespace: ecommerce-production
+type: Opaque
+data:
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: cGtfdGVzdF9zdHJpcGVfcHVibGlzaGFibGU= # base64
+
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: ecommerce-production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ecommerce/frontend:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: frontend-config
+        - secretRef:
+            name: frontend-secret
+        ports:
+        - containerPort: 3002
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: ecommerce-production
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 3002
+      targetPort: 3002
+  type: ClusterIP
+
+---
+# MCP Server ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-config
+  namespace: ecommerce-production
+data:
+  NODE_ENV: "production"
+  PORT: "3003"
+  DATABASE_URL: "postgresql://ecommerce_user:password123@postgres-service:5432/ecommerce_production"
+  REDIS_URL: "redis://:redis_password_123@redis-service:6379"
+  MCP_API_KEY: "production_mcp_api_key"
+
+---
+# MCP Server Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-secret
+  namespace: ecommerce-production
+type: Opaque
+data:
+  OPENAI_API_KEY: c2tfdGVzdF9vcGVuYWlfYXBpX2tleQ== # base64
+  ANTHROPIC_API_KEY: YW50aF90ZXN0X2FwaV9rZXk= # base64
+
+---
+# MCP Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-deployment
+  namespace: ecommerce-production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mcp-server
+  template:
+    metadata:
+      labels:
+        app: mcp-server
+    spec:
+      containers:
+      - name: mcp-server
+        image: ecommerce/mcp-server:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: mcp-config
+        - secretRef:
+            name: mcp-secret
+        ports:
+        - containerPort: 3003
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+
+---
+# MCP Server Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-service
+  namespace: ecommerce-production
+spec:
+  selector:
+    app: mcp-server
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3003
+  type: ClusterIP

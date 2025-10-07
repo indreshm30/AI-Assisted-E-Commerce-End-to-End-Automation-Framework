@@ -1,0 +1,35 @@
+# AI-Enhanced Testing Framework Dependencies
+
+# Core testing framework
+pytest>=7.0.0
+pytest-html>=3.1.0
+pytest-json-report>=1.5.0
+pytest-xdist>=2.5.0  # For parallel test execution
+pytest-asyncio>=0.21.0
+
+# Web automation (existing Playwright setup)
+playwright>=1.40.0
+
+# AI and HTTP client dependencies
+aiohttp>=3.8.0
+websockets>=11.0.0
+requests>=2.28.0
+
+# Data processing and analytics
+pandas>=1.5.0
+numpy>=1.24.0
+matplotlib>=3.6.0  # For potential chart generation
+plotly>=5.15.0  # For interactive dashboards
+
+# Utility libraries
+pathlib2>=2.3.7
+dataclasses-json>=0.6.0  # For easier serialization
+python-dateutil>=2.8.0
+
+# Development and testing
+black>=22.0.0  # Code formatting
+flake8>=5.0.0  # Linting
+mypy>=1.0.0  # Type checking
+
+# Optional: Machine learning for advanced pattern recognition
+scikit-learn>=1.2.0

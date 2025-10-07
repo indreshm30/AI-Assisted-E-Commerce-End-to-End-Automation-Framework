@@ -1,0 +1,54 @@
+# AI Testing Framework Dockerfile
+FROM python:3.11-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Playwright dependencies
+RUN apt-get update && apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxkbcommon0 \
+    libgtk-3-0 \
+    libatspi2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Playwright browsers
+RUN playwright install --with-deps
+
+# Copy application code
+FROM base AS runner
+COPY . .
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash testuser
+RUN chown -R testuser:testuser /app
+
+USER testuser
+
+# Create necessary directories
+RUN mkdir -p /app/ai_generated_tests /app/adaptive_data /app/analytics_data /app/reports
+
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+
+# Default command
+CMD ["python", "orchestrator.py", "--mode", "interactive"]

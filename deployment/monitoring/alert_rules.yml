@@ -1,0 +1,213 @@
+# Prometheus Alert Rules for E-Commerce Platform
+groups:
+  - name: ecommerce.rules
+    interval: 30s
+    rules:
+      
+      # High-level service availability alerts
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute."
+
+      # Frontend alerts
+      - alert: FrontendHighErrorRate
+        expr: rate(http_requests_total{job="ecommerce-frontend",status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on frontend"
+          description: "Frontend error rate is {{ $value }} errors per second."
+
+      - alert: FrontendResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="ecommerce-frontend"}[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Frontend response time is high"
+          description: "95th percentile response time is {{ $value }} seconds."
+
+      # Backend API alerts
+      - alert: BackendHighErrorRate
+        expr: rate(http_requests_total{job="ecommerce-backend",status=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate on backend API"
+          description: "Backend API error rate is {{ $value }} errors per second."
+
+      - alert: BackendResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="ecommerce-backend"}[5m])) > 1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backend response time is high"
+          description: "95th percentile API response time is {{ $value }} seconds."
+
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_database_numbackends > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connections"
+          description: "Database has {{ $value }} active connections."
+
+      # MCP Server alerts
+      - alert: MCPServerHighErrorRate
+        expr: rate(http_requests_total{job="ecommerce-mcp",status=~"5.."}[5m]) > 0.02
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on MCP server"
+          description: "MCP server error rate is {{ $value }} errors per second."
+
+      - alert: AITestGenerationFailures
+        expr: rate(ai_test_generation_failures_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI test generation failing"
+          description: "AI test generation failure rate is {{ $value }} per second."
+
+      # Infrastructure alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: DiskSpaceRunningOut
+        expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100 > 85
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space running out on {{ $labels.instance }}"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }} {{ $labels.mountpoint }}."
+
+      # Database alerts
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_database_tup_returned[5m]) / rate(pg_stat_database_tup_fetched[5m]) < 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Query efficiency is low: {{ $value }}."
+
+      # Redis alerts
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache server is not responding."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}."
+
+      # Application-specific alerts
+      - alert: OrderProcessingErrors
+        expr: rate(order_processing_errors_total[5m]) > 0.01
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Order processing errors detected"
+          description: "Order processing error rate is {{ $value }} per second."
+
+      - alert: PaymentGatewayErrors
+        expr: rate(payment_gateway_errors_total[5m]) > 0.005
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment gateway errors"
+          description: "Payment processing error rate is {{ $value }} per second."
+
+      - alert: InventoryLow
+        expr: inventory_stock_level < 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low inventory for product {{ $labels.product_id }}"
+          description: "Product {{ $labels.product_name }} has only {{ $value }} items in stock."
+
+      # Security alerts
+      - alert: SuspiciousActivity
+        expr: rate(http_requests_total{status="401"}[5m]) > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of unauthorized requests"
+          description: "Detected {{ $value }} unauthorized requests per second."
+
+      - alert: RateLimitExceeded
+        expr: rate(http_requests_total{status="429"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limit exceeded frequently"
+          description: "Rate limit exceeded {{ $value }} times per second."
+
+      # AI Testing Framework alerts
+      - alert: TestExecutionFailures
+        expr: rate(test_execution_failures_total[10m]) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High test execution failure rate"
+          description: "Test failure rate is {{ $value }} per second over the last 10 minutes."
+
+      - alert: AdaptiveLearningStalled
+        expr: increase(adaptive_rules_created_total[1h]) == 0 and increase(test_failures_total[1h]) > 10
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Adaptive learning system may be stalled"
+          description: "No new adaptive rules created despite {{ $value }} test failures in the last hour."

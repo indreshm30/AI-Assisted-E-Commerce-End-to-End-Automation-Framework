@@ -1,0 +1,55 @@
+# MCP Server Dockerfile for AI-powered testing
+FROM node:18-alpine AS base
+
+# Install necessary packages
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    sqlite \
+    curl
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install dependencies
+FROM base AS deps
+RUN npm ci --only=production
+
+# Build stage
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Production stage
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Create non-root user
+RUN addgroup --system --gid 1001 mcpuser
+RUN adduser --system --uid 1001 mcpuser
+
+# Copy built application
+COPY --from=builder --chown=mcpuser:mcpuser /app/dist ./dist
+COPY --from=builder --chown=mcpuser:mcpuser /app/node_modules ./node_modules
+COPY --from=builder --chown=mcpuser:mcpuser /app/package.json ./
+
+# Create necessary directories
+RUN mkdir -p /app/data /app/logs && chown -R mcpuser:mcpuser /app
+
+USER mcpuser
+
+EXPOSE 3003
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD curl -f http://localhost:3003/health || exit 1
+
+CMD ["npm", "start"]
