@@ -26,7 +26,7 @@ ecommerce_automation_new/
 └── README.md                # This file
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Windows PowerShell)
 
 ### Prerequisites
 - Node.js 18+
@@ -34,20 +34,88 @@ ecommerce_automation_new/
 - Docker & Docker Compose
 - Git
 
-### 1. Install Dependencies
-```bash
-npm run setup
+### 1. Start Database Services (Docker)
+```powershell
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework"
+docker-compose -f docker-compose.dev.yml up -d
 ```
 
-### 2. Start Development Environment
-```bash
+### 2. Install Dependencies
+```powershell
+# Install all Node.js dependencies
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework"
+npm run install:all
+```
+
+### 3. Setup Database
+```powershell
+# Run database migrations and seed data
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework\platform\backend"
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+npx prisma migrate dev --name init
+npx tsx src/scripts/seed.ts
+```
+
+### 4. Start All Services (Run each in separate terminals)
+
+#### Terminal 1 - Backend API (Port 3001):
+```powershell
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework\platform\backend"
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 npm run dev
 ```
 
-### 3. Run AI-Enhanced Tests
-```bash
-npm run test
+#### Terminal 2 - Frontend (Port 3002):
+```powershell
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework\platform\frontend"
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+npm run dev
 ```
+
+#### Terminal 3 - MCP AI Server (Port 3003):
+```powershell
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework\platform\mcp_server"
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+npm run dev
+```
+
+### 5. Access the Application
+- **Frontend**: http://localhost:3002
+- **Backend API**: http://localhost:3001/api/v1
+- **API Health**: http://localhost:3001/health
+- **MCP AI Server**: http://localhost:3003
+
+### 6. Run AI-Enhanced Tests (Optional)
+```powershell
+cd "AI-Assisted-E-Commerce-End-to-End-Automation-Framework\ai_testing"
+python -m pip install -r requirements.txt
+python orchestrator.py --mode auto
+```
+
+## 👤 Test Users (Created by seed script)
+- **Customer**: test@example.com (password: password123)
+- **Admin**: admin@automatestore.com (password: password123)
+
+## 📦 Sample Products (Created by seed script)
+- iPhone 15 Pro - $999.99
+- Samsung Galaxy S24 - $899.99  
+- MacBook Air M3 - $1,299.99
+- Dell XPS 13 - Available in database
+
+## 🎯 Key Features Implemented
+- ✅ Complete e-commerce frontend with Next.js 15
+- ✅ RESTful API backend with Node.js/Express
+- ✅ PostgreSQL database with Prisma ORM
+- ✅ AI-powered MCP server with local models
+- ✅ Redis caching and session management
+- ✅ Docker containerization for databases
+- ✅ JWT authentication and authorization
+- ✅ Product catalog with categories and brands
+- ✅ Shopping cart functionality
+- ✅ Order management system
+- ✅ Image optimization and CDN support
+- ✅ CORS configuration for cross-origin requests
+- ✅ Database seeding with sample data
 
 ### 4. Deploy to Production
 ```bash

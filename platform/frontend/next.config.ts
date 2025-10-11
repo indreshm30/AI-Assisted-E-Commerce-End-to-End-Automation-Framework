@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       'images.unsplash.com',
+      'via.placeholder.com',
       'localhost',
       '127.0.0.1',
     ],
